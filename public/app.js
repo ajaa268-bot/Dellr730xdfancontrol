@@ -399,6 +399,15 @@ async function sendControl(params) {
         if (params.mode) appState.mode = data.mode;
         if (params.speed) appState.speed = data.speed;
         
+        // Sync sliders immediately with returned confirmed server state
+        if (appState.mode === 'manual') {
+            updateSliderUI(appState.speed);
+        }
+        if (data.safetyThreshold) {
+            appState.safetyThreshold = data.safetyThreshold;
+            updateSafetySliderUI(appState.safetyThreshold);
+        }
+        
         fetchStatus();
     } catch (err) {
         console.error('Failed to apply settings:', err);
