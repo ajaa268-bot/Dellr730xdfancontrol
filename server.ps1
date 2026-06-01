@@ -203,10 +203,20 @@ while ($listener.IsListening) {
         if ($global:mode -eq "curve" -and -not $global:safetyOverride -and $highestTemp -gt 0) {
             $targetSpeed = Get-CurveSpeed -temp $highestTemp
             if ($targetSpeed -ne $global:speed) {
-                $global:speed = $targetSpeed
+                # Smooth ramp up/down: limit change to at most 3% per 5-second interval
+                $maxStep = 3
+                $difference = $targetSpeed - $global:speed
+                if ($difference -gt $maxStep) {
+                    $global:speed += $maxStep
+                } elseif ($difference -lt -$maxStep) {
+                    $global:speed -= $maxStep
+                } else {
+                    $global:speed = $targetSpeed
+                }
+
                 $speedHex = "0x" + $global:speed.ToString("X2")
                 try {
-                    Write-Host "[Curve] Temp ($highestTemp°C) maps to speed $global:speed%. Enforcing..." -ForegroundColor Cyan
+                    Write-Host "[Curve] Temp ($highestTemp°C) target: $targetSpeed%. Gradual speed: $global:speed% ($speedHex)..." -ForegroundColor Cyan
                     & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 | Out-Null
                     & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex | Out-Null
                     $lastRun = $now
