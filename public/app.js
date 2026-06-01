@@ -409,18 +409,24 @@ async function sendControl(params) {
 // Event Listeners
 btnAuto.addEventListener('click', () => {
     if (appState.mode !== 'auto') {
+        appState.mode = 'auto';
+        updateUI();
         sendControl({ mode: 'auto' });
     }
 });
 
 btnCurve.addEventListener('click', () => {
     if (appState.mode !== 'curve') {
+        appState.mode = 'curve';
+        updateUI();
         sendControl({ mode: 'curve' });
     }
 });
 
 btnManual.addEventListener('click', () => {
     if (appState.mode !== 'manual') {
+        appState.mode = 'manual';
+        updateUI();
         sendControl({ mode: 'manual', speed: parseInt(speedSlider.value, 10) });
     }
 });
@@ -591,17 +597,29 @@ const dockBtnSpeedUp = document.getElementById('dock-btn-speed-up');
 
 if (dockBtnAuto) {
     dockBtnAuto.addEventListener('click', () => {
-        if (appState.mode !== 'auto') sendControl({ mode: 'auto' });
+        if (appState.mode !== 'auto') {
+            appState.mode = 'auto';
+            updateUI();
+            sendControl({ mode: 'auto' });
+        }
     });
 }
 if (dockBtnCurve) {
     dockBtnCurve.addEventListener('click', () => {
-        if (appState.mode !== 'curve') sendControl({ mode: 'curve' });
+        if (appState.mode !== 'curve') {
+            appState.mode = 'curve';
+            updateUI();
+            sendControl({ mode: 'curve' });
+        }
     });
 }
 if (dockBtnManual) {
     dockBtnManual.addEventListener('click', () => {
-        if (appState.mode !== 'manual') sendControl({ mode: 'manual', speed: appState.speed });
+        if (appState.mode !== 'manual') {
+            appState.mode = 'manual';
+            updateUI();
+            sendControl({ mode: 'manual', speed: appState.speed });
+        }
     });
 }
 if (dockBtnSpeedDown) {
