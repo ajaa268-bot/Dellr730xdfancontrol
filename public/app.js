@@ -41,6 +41,7 @@ let appState = {
 
 // Chart.js Instance
 let historyChart = null;
+let lastManualChangeTime = 0;
 
 // Initialize PIN from localStorage
 if (localStorage.getItem('dashboard_pin')) {
@@ -346,12 +347,13 @@ async function fetchStatus() {
         appState.curvePoints = data.curvePoints || [];
         appState.pinRequired = data.pinRequired;
         
-        // Update slider position if not active manual input
-        if (document.activeElement !== speedSlider && appState.mode === 'manual') {
+        // Update slider position if not active manual input and not changed recently
+        const timeSinceManualChange = Date.now() - lastManualChangeTime;
+        if (document.activeElement !== speedSlider && appState.mode === 'manual' && timeSinceManualChange > 4000) {
             updateSliderUI(appState.speed);
         }
 
-        if (document.activeElement !== safetySlider) {
+        if (document.activeElement !== safetySlider && timeSinceManualChange > 4000) {
             updateSafetySliderUI(appState.safetyThreshold);
         }
         
@@ -370,6 +372,10 @@ async function fetchStatus() {
 // Send control/config updates to server
 async function sendControl(params) {
     try {
+        if (params.speed !== undefined || params.mode !== undefined || params.safetyThreshold !== undefined || params.curvePoints !== undefined) {
+            lastManualChangeTime = Date.now();
+        }
+
         const localPin = localStorage.getItem('dashboard_pin') || '';
         const body = { ...params, pin: localPin };
 
