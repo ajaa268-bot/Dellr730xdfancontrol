@@ -134,11 +134,9 @@ while ($listener.IsListening) {
             }
             if ($cpuTemps.Count -gt 0) {
                 $global:cpuTemp = $cpuTemps -join " / "
-            } else {
-                $global:cpuTemp = "N/A"
             }
         } catch {
-            $global:cpuTemp = "Error"
+            # Keep last known temperature to prevent flickering
         }
 
         # Fetch GPU temperature via nvidia-smi
