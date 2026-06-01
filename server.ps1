@@ -113,8 +113,8 @@ while ($listener.IsListening) {
         }
     }
 
-    # 1b. Temp Monitor & Rule Execution Loop (every 5 seconds)
-    if (($now - $lastTempCheck).TotalSeconds -ge 5) {
+    # 1b. Temp Monitor & Rule Execution Loop (every 3 seconds)
+    if (($now - $lastTempCheck).TotalSeconds -ge 3) {
         # Fetch CPU temperature via ipmitool WMI
         try {
             $ipmiOutput = & $ipmitool -I wmi sdr type Temperature 2>$null

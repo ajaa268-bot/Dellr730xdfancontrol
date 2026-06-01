@@ -256,8 +256,13 @@ public class DockForm : Form {
             RegisterAppBar();
             if (isAppBarRegistered) {
                 SizeAppBar();
+            } else {
+                UpdateDockCoordinates();
+                this.Size = new Size(currentWidth, currentHeight);
+                this.Location = new Point(0, targetYVisible);
             }
         } else if (message.StartsWith("standard")) {
+            bool wasDock = (this.FormBorderStyle == FormBorderStyle.None);
             isDockLayout = false;
             int height = standardHeight;
             double scale = 1.0;
@@ -276,6 +281,14 @@ public class DockForm : Form {
             this.TopMost = false;
             this.ShowInTaskbar = true; 
             UnregisterAppBar();
+            
+            this.Size = new Size(currentWidth, currentHeight);
+            if (wasDock) {
+                // Center the window on transition from dock
+                int targetX = (screenWidth - currentWidth) / 2;
+                int targetY = (screenHeight - taskbarHeight - currentHeight) / 2;
+                this.Location = new Point(targetX, targetY);
+            }
         } else if (message.StartsWith("launch:")) {
             string app = message.Substring(7);
             try {
@@ -384,14 +397,6 @@ public class DockForm : Form {
             return;
         }
 
-        UpdateDockCoordinates();
-        if (!isAppBarRegistered) {
-            this.Size = new Size(currentWidth, currentHeight);
-            int targetX = isDockLayout ? 0 : (screenWidth - currentWidth) / 2;
-            this.Location = new Point(targetX, targetYVisible);
-            currentWindowX = targetX;
-            currentWindowY = targetYVisible;
-        }
     }
 
     private void UpdateDockCoordinates() {

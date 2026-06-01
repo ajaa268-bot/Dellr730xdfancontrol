@@ -1018,5 +1018,5 @@ sendSettingsToNative();
 renderCustomShortcuts(); // Render custom shortcuts on load
 updateSliderUI(appState.speed);
 fetchStatus();
-setInterval(fetchStatus, 2000);
+setInterval(fetchStatus, 1000);
 

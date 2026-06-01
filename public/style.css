@@ -1161,11 +1161,7 @@ footer {
 
 /* Standard Header Window Controls */
 .header-window-controls {
-    display: flex;
-    gap: 8px;
-    margin-left: 10px;
-    border-left: 1px solid var(--border-color);
-    padding-left: 15px;
+    display: none !important;
 }
 
 /* Dock Window Controls (Hidden in standard view) */
