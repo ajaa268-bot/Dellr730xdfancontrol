@@ -21,6 +21,7 @@ $global:safetyOverride = $false
 $global:pin = ""        # Simple security PIN (leave empty to disable)
 $global:lastKnownCpuVal = 35  # reasonable default
 $global:lastKnownGpuVal = 35  # reasonable default
+$global:applyPending = $true  # Force initial application of settings on startup
 $global:history = [System.Collections.Generic.List[PSCustomObject]]::new()
 $global:curvePoints = @(
     [PSCustomObject]@{ temp = 40; speed = 15 }
@@ -29,6 +30,47 @@ $global:curvePoints = @(
     [PSCustomObject]@{ temp = 80; speed = 75 }
     [PSCustomObject]@{ temp = 85; speed = 100 }
 )
+
+# Configuration File Persistence
+$global:configFile = Join-Path $PSScriptRoot "config.json"
+
+function Save-Config {
+    $config = [PSCustomObject]@{
+        mode            = $global:mode
+        speed           = $global:speed
+        safetyThreshold = $global:safetyThreshold
+        curvePoints     = $global:curvePoints
+    }
+    try {
+        $config | ConvertTo-Json -Depth 10 | Out-File $global:configFile -Encoding UTF8
+    } catch {
+        Write-Warning "Failed to save config: $_"
+    }
+}
+
+function Load-Config {
+    if (Test-Path $global:configFile) {
+        try {
+            $config = Get-Content $global:configFile -Raw | ConvertFrom-Json
+            if ($null -ne $config.mode) { $global:mode = $config.mode }
+            if ($null -ne $config.speed) { $global:speed = [int]$config.speed }
+            if ($null -ne $config.safetyThreshold) { $global:safetyThreshold = [int]$config.safetyThreshold }
+            if ($null -ne $config.curvePoints) {
+                $points = @()
+                foreach ($p in $config.curvePoints) {
+                    $points += [PSCustomObject]@{ temp = [double]$p.temp; speed = [double]$p.speed }
+                }
+                $global:curvePoints = $points
+            }
+            Write-Host "Config loaded successfully from $global:configFile" -ForegroundColor Green
+        } catch {
+            Write-Warning "Failed to load config: $_"
+        }
+    }
+}
+
+# Load saved configurations
+Load-Config
 
 # Helper: Append entry to history
 function Add-HistoryEntry {
@@ -98,6 +140,29 @@ $contextAsync = $listener.BeginGetContext($null, $null)
 while ($listener.IsListening) {
     # Get current time
     $now = Get-Date
+
+    # 1a. Async Apply settings immediately on change (so HTTP requests don't block)
+    if ($global:applyPending -and -not $global:safetyOverride) {
+        $global:applyPending = $false
+        try {
+            if ($global:mode -eq "manual") {
+                $speedHex = "0x" + $global:speed.ToString("X2")
+                Write-Host "[Async Apply] Enforcing manual mode, speed: $global:speed% ($speedHex)..." -ForegroundColor Green
+                & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 | Out-Null
+                & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex | Out-Null
+                $lastRun = $now
+            } elseif ($global:mode -eq "curve") {
+                # Force instant recheck of temperature & curve mapping
+                $lastTempCheck = [DateTime]::MinValue
+            } else {
+                Write-Host "[Async Apply] Enforcing auto mode..." -ForegroundColor Green
+                & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 | Out-Null
+                $lastRun = $now
+            }
+        } catch {
+            Write-Warning "Async settings application failed: $_"
+        }
+    }
 
     # 1. Daemon Loop: Apply fan speed periodically (every 5 seconds) to prevent iDRAC override
     # Applies to BOTH manual and curve modes
@@ -352,20 +417,11 @@ while ($listener.IsListening) {
 
             Write-Host "[API] Settings updated: Mode=$global:mode, Speed=$global:speed%, Safety=$global:safetyThreshold°C" -ForegroundColor Green
 
-            # Apply mode changes instantly
-            if (-not $global:safetyOverride) {
-                if ($global:mode -eq "manual") {
-                    $speedHex = "0x" + $global:speed.ToString("X2")
-                    & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 | Out-Null
-                    & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex | Out-Null
-                    $lastRun = $now
-                } elseif ($global:mode -eq "curve") {
-                    # Forces recheck of curve in next iteration
-                    $lastTempCheck = [DateTime]::MinValue
-                } else {
-                    & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 | Out-Null
-                }
-            }
+            # Save settings persistently
+            Save-Config
+
+            # Flag to apply settings asynchronously in the background loop
+            $global:applyPending = $true
 
             $resObj = [PSCustomObject]@{
                 success = $true
