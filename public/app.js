@@ -56,6 +56,12 @@ function updateSliderUI(value) {
     speedDisplay.textContent = `${value}%`;
     const percent = ((value - speedSlider.min) / (speedSlider.max - speedSlider.min)) * 100;
     speedFill.style.width = `${percent}%`;
+    
+    // Sync dock speed text instantly
+    const dockSpeedDisplay = document.getElementById('dock-speed-display');
+    if (dockSpeedDisplay) {
+        dockSpeedDisplay.textContent = `${value}%`;
+    }
 }
 
 function updateSafetySliderUI(value) {

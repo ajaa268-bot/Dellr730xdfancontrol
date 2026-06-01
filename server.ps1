@@ -303,7 +303,7 @@ while ($listener.IsListening) {
     }
 
     # 2. Web Server: Non-blocking check for incoming request using the persistent async handle
-    if (-not $contextAsync.AsyncWaitHandle.WaitOne(200)) {
+    if (-not $contextAsync.AsyncWaitHandle.WaitOne(20)) {
         continue # Timeout, loop again to check daemon
     }
 
