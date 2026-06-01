@@ -377,6 +377,10 @@ async function fetchStatus() {
 
 // Send control/config updates to server
 async function sendControl(params) {
+    const overlay = document.getElementById('control-panel-overlay');
+    if (overlay) {
+        overlay.classList.remove('hidden');
+    }
     try {
         if (params.speed !== undefined || params.mode !== undefined || params.safetyThreshold !== undefined || params.curvePoints !== undefined) {
             lastManualChangeTime = Date.now();
@@ -418,6 +422,10 @@ async function sendControl(params) {
     } catch (err) {
         console.error('Failed to apply settings:', err);
         alert('Error: Could not apply settings to server.');
+    } finally {
+        if (overlay) {
+            overlay.classList.add('hidden');
+        }
     }
 }
 
