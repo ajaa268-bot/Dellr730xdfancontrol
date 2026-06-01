@@ -1,57 +1,85 @@
-# Dell PowerEdge iDRAC8 Fan Control Fallback & Auto-Start Utility
+# Dell PowerEdge Fan Controller Dashboard
 
-A simple, robust solution for managing fan speeds on Dell PowerEdge 13th generation servers (e.g., R730, R730xd, R630, T630) and OEM appliances (like Avigilon HD NVRs) running newer iDRAC8 firmware (version 2.70+ or 2.80+).
+A modern, high-performance, and feature-rich fan control dashboard and daemon for Dell PowerEdge 13th generation servers (e.g., R730, R730xd, R630, T630) and OEM appliances (such as Avigilon HD NVRs) running newer iDRAC8 firmware.
 
-## The Problem
-Dell PowerEdge servers automatically ramp up system fans to 100% (or very high speeds) if non-Dell (third-party) PCIe expansion cards are installed (e.g., generic SSDs, GPUs, NICs). 
-
-While you can override this behavior and set manual fan speeds using IPMI raw commands (`ipmitool`), newer iDRAC8 firmware features a built-in safety watchdog that automatically resets the fan control mode back to **Automatic** after a short period (typically every 10 to 60 seconds). This causes the fans to constantly rev up and down, which is noisy and frustrating.
-
-## The Solution
-This repository contains a lightweight fallback daemon (`dell_fan_control.ps1`) that runs in the background. It continuously:
-1. Checks if a primary software controller (like Rem0o's popular [Fan Control](https://github.com/Rem0o/FanControl.Releases) app) is running.
-2. If the primary controller is **not running**, it continuously sends WMI-based IPMI commands to lock the fans at a safe fallback speed (e.g., 35%).
-3. Since it sends the command every 1 second, it overrides the iDRAC safety watchdog instantly, preventing the fans from revving up.
+This utility consists of a compiled **C# Windows Forms GUI** wrapping a premium **HTML/CSS/JS Cyberpunk-styled WebView2 Dashboard**, powered by a local non-blocking **PowerShell Web Server** (`server.ps1`) executing local WMI-based IPMI commands. It also includes an automated system startup fallback script to guarantee server safety when the GUI is closed.
 
 ---
 
-## File Structure
-* `dell_fan_control.ps1`: The PowerShell daemon script that loops IPMI control commands.
-* `setup.ps1`: An automated script to register the Task Scheduler jobs.
+## ⚡ Key Features
+
+* **Three Control Modes**:
+  * **Auto (iDRAC)**: Restores native iDRAC automatic fan regulation.
+  * **Smart Curve**: Evaluates custom-defined multi-point temperature-to-speed interpolation tables based on the highest temperature of your CPU sockets and NVIDIA GPU.
+  * **Manual**: Instantly locks fan speed between 10% and 100% using presets or precision sliders.
+* **Modern Cyberpunk UI**: Built with beautiful glassmorphism, responsive animations, and modern typography (Outfit & JetBrains Mono).
+* **Live Performance Monitoring**: Real-time canvas-based graphing of CPU socket temperatures, GPU temperatures, and target fan speeds.
+* **Dock & Standard Views**: Supports dual layouts—a standard expanded dashboard and a screen-dockable compact bar that pins to the top/bottom of your screen for minimal footprint.
+* **Auto-Healing & Watchdog Beat**: Enforces fan controls every 3 seconds to beat the iDRAC firmware watchdog which automatically reverts overrides to Auto mode if left unrefreshed.
+* **Critical Safety Override**: Automatically falls back to iDRAC Auto mode if any component (CPU or GPU) exceeds a user-defined threshold (e.g., 85°C).
+* **Custom Theme Engine**: Toggle between presets (Cyberpunk Neon, Volcanic Heat, Forest Mint, Sunset, Amethyst) or build your own custom accent colors.
+* **Quick App Launcher**: Configure and trigger custom app launch shortcuts (executables, folders, or web links) directly from the dock.
+* **Tray Integration**: Minimize the controller safely to the Windows System Tray to keep your desktop clean.
+* **Security Access PIN**: Secure control APIs with a customizable PIN to prevent unauthorized network access.
 
 ---
 
-## Prerequisites
-1. **Enable IPMI over LAN** in your iDRAC settings:
-   * Log into the iDRAC Web UI.
+## 🛠️ Architecture
+
+```mermaid
+graph TD
+    A[FanController.exe C# GUI] -->|Embeds| B[WebView2 Dashboard UI]
+    B -->|API Requests| C[PowerShell Web Server :3000]
+    C -->|IPMI WMI Commands| D[iDRAC WMI Driver]
+    C -->|CLI Queries| E[nvidia-smi / ipmitool]
+    F[DellFanControlFallback SYSTEM Task] -->|Monitors| A
+    F -->|If GUI Closed| D
+```
+
+* **`FanController.exe`**: C# GUI container that manages WebView2, window scaling, custom shortcut execution, and system tray integration.
+* **`server.ps1`**: Non-blocking web server running locally on port 3000. It reads temperature metrics via `ipmitool` (over WMI) and `nvidia-smi`, handles API routing, history logs, and drives the fan control loop.
+* **`dell_fan_control.ps1`**: A fail-safe daemon running as `SYSTEM` on boot. It stays idle while the GUI app is open, but automatically engages to lock fans at a safe fallback speed (e.g., 35%) if the GUI app is closed, preventing dangerous overheating.
+
+---
+
+## 📋 Prerequisites
+
+1. **Enable IPMI over LAN** in iDRAC:
+   * Log into iDRAC Web UI.
    * Go to **iDRAC Settings** > **Network** > **Services**.
-   * Enable **IPMI over LAN**.
-2. **Dell iDRAC Tools** must be installed on your Windows machine so `ipmitool.exe` is available:
-   * Default path checked by script: `C:\Program Files\Dell\SysMgt\iDRACTools\IPMI\ipmitool.exe`
+   * Check **IPMI over LAN** and save.
+2. **Dell iDRAC Tools** must be installed on the host machine:
+   * Installed to: `C:\Program Files\Dell\SysMgt\iDRACTools\IPMI\ipmitool.exe` (or accessible in PATH).
+3. **NVIDIA Drivers** (Optional):
+   * Required only if you want GPU temperature reading and curve mapping via `nvidia-smi`.
 
 ---
 
-## Installation & Setup
+## 🚀 Installation & Auto-Start Setup
 
-1. Open PowerShell as **Administrator**.
-2. Clone this repository or copy the files to a directory on your machine (e.g. `C:\Scripts\DellFanControl`).
-3. Run the automated setup script:
+The repository comes with a self-elevating setup script that automates compilation, directories, and scheduled tasks.
+
+1. Open **PowerShell** as **Administrator**.
+2. Run the installer:
    ```powershell
    Set-ExecutionPolicy Bypass -Scope Process -Force
-   .\setup.ps1
+   .\install.ps1
    ```
 
-The setup script will:
-* Register the **DellFanControlFallback** task in Task Scheduler to run the script silently at system startup.
-* Ask you if you want to configure an auto-start task for an external fan controller executable (like Rem0o's FanControl) to load automatically when you log in.
+The installer will:
+* Create a secure application directory under `C:\Program Files\PowerEdgeFanCtrl`.
+* Copy the executables, scripts, and static web UI assets.
+* Create a **PowerEdge Fan Controller** shortcut on your **Desktop** and **Start Menu**.
+* Register the background `DellFanControlFallback` safety task to run silently at system startup.
 
 ---
 
-## Restoring Default (Automatic) iDRAC Control
-If you want to remove the scheduled tasks and return your server's fans to default automatic control, run:
+## ❌ Uninstallation
+
+To remove all custom scheduled tasks, shortcuts, and clean up files from your system, run:
 ```powershell
-Stop-ScheduledTask -TaskName "DellFanControlFallback" -ErrorAction SilentlyContinue
-Unregister-ScheduledTask -TaskName "DellFanControlFallback" -Confirm:$false
-Unregister-ScheduledTask -TaskName "AutoStartFanController" -Confirm:$false
-& "C:\Program Files\Dell\SysMgt\iDRACTools\IPMI\ipmitool.exe" -I wmi raw 0x30 0x30 0x01 0x01
+Set-ExecutionPolicy Bypass -Scope Process -Force
+.\uninstall.ps1
 ```
+This will cleanly restore the server back to full iDRAC Automatic fan control.
+
