@@ -40,6 +40,7 @@ function Save-Config {
         speed           = $global:speed
         safetyThreshold = $global:safetyThreshold
         curvePoints     = $global:curvePoints
+        pin             = $global:pin
     }
     try {
         $config | ConvertTo-Json -Depth 10 | Out-File $global:configFile -Encoding UTF8
@@ -55,6 +56,7 @@ function Load-Config {
             if ($null -ne $config.mode) { $global:mode = $config.mode }
             if ($null -ne $config.speed) { $global:speed = [int]$config.speed }
             if ($null -ne $config.safetyThreshold) { $global:safetyThreshold = [int]$config.safetyThreshold }
+            if ($null -ne $config.pin) { $global:pin = $config.pin.ToString() }
             if ($null -ne $config.curvePoints) {
                 $points = @()
                 foreach ($p in $config.curvePoints) {

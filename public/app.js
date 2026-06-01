@@ -502,18 +502,20 @@ safetySlider.addEventListener('change', () => {
 // Save PIN locally
 btnSavePin.addEventListener('click', () => {
     if (btnSavePin.classList.contains('active')) {
-        localStorage.removeItem('dashboard_pin');
-        pinField.value = '';
-        btnSavePin.textContent = 'Set Local PIN';
-        btnSavePin.classList.remove('active');
-        fetchStatus();
+        sendControl({ newPin: "" }).then(() => {
+            localStorage.removeItem('dashboard_pin');
+            pinField.value = '';
+            btnSavePin.textContent = 'Set Local PIN';
+            btnSavePin.classList.remove('active');
+        });
     } else {
         const pin = pinField.value.trim();
         if (pin) {
-            localStorage.setItem('dashboard_pin', pin);
-            btnSavePin.textContent = 'Clear PIN';
-            btnSavePin.classList.add('active');
-            fetchStatus();
+            sendControl({ newPin: pin }).then(() => {
+                localStorage.setItem('dashboard_pin', pin);
+                btnSavePin.textContent = 'Clear PIN';
+                btnSavePin.classList.add('active');
+            });
         } else {
             alert('Please enter a PIN first.');
         }
