@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dell Server Fan Controller</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js for real-time history graphing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo drag-handle" title="Drag to move app">
+                <span class="logo-icon">⚡</span>
+                <h1>POWEREDGE FAN CTRL</h1>
+                <span class="header-drag-grip">⋮⋮</span>
+            </div>
+            <div class="header-actions">
+                <div class="scale-selector-container">
+                    <span class="scale-label">UI Scale:</span>
+                    <select id="app-scale-select" class="scale-select">
+                        <option value="0.8">80%</option>
+                        <option value="1.0" selected>100%</option>
+                        <option value="1.2">120%</option>
+                        <option value="1.4">140%</option>
+                        <option value="1.6">160%</option>
+                        <option value="1.8">180%</option>
+                        <option value="2.0">200%</option>
+                    </select>
+                </div>
+                <button id="btn-toggle-dock" class="dock-toggle-btn">📺 Dock View</button>
+                <div id="connection-badge" class="badge badge-disconnected">Connecting...</div>
+                
+                <!-- Standard Window Controls -->
+                <div class="header-window-controls">
+                    <button class="win-control-btn" id="win-min" title="Minimize">_</button>
+                    <button class="win-control-btn btn-close" id="win-close" title="Close">×</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left Panel: Mode & Speed Control -->
+            <section class="control-panel glass-card">
+                <h2>Control Settings</h2>
+                
+                <div class="mode-selector">
+                    <button id="btn-mode-auto" class="mode-btn">
+                        <span class="btn-icon">⚙️</span>
+                        <span class="btn-text">Auto (iDRAC)</span>
+                    </button>
+                    <button id="btn-mode-curve" class="mode-btn">
+                        <span class="btn-icon">📈</span>
+                        <span class="btn-text">Smart Curve</span>
+                    </button>
+                    <button id="btn-mode-manual" class="mode-btn">
+                        <span class="btn-icon">🎮</span>
+                        <span class="btn-text">Manual</span>
+                    </button>
+                </div>
+
+                <div id="manual-controls" class="control-group disabled">
+                    <div class="slider-header">
+                        <h3>Fan Speed Target</h3>
+                        <span id="speed-value-display" class="speed-value">20%</span>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <input type="range" id="fan-speed-slider" min="10" max="100" value="20" step="5" disabled>
+                        <div class="slider-track-fill" id="slider-fill"></div>
+                    </div>
+
+                    <div class="presets-section">
+                        <h4>Presets</h4>
+                        <div class="presets-grid">
+                            <button class="preset-btn" data-speed="10">10%</button>
+                            <button class="preset-btn" data-speed="20">20%</button>
+                            <button class="preset-btn" data-speed="35">35%</button>
+                            <button class="preset-btn" data-speed="50">50%</button>
+                            <button class="preset-btn" data-speed="75">75%</button>
+                            <button class="preset-btn" data-speed="100">100%</button>
+                        </div>
+                    </div>
+
+                    <button id="btn-apply" class="apply-btn" disabled>
+                        Apply Fan Speed
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Visual Status -->
+            <section class="status-panel glass-card">
+                <h2>System Status</h2>
+
+                <div class="status-display">
+                    <!-- Dock Drag Handle -->
+                    <div class="drag-handle dock-drag-handle" title="Drag to snap Top/Bottom">
+                        <span>⋮</span><span>⋮</span>
+                    </div>
+                    <div class="fan-wrapper">
+                        <!-- Neon spinning fan SVG -->
+                        <svg class="fan-svg" viewBox="0 0 100 100" id="visual-fan">
+                            <circle cx="50" cy="50" r="45" stroke="var(--neon-blue)" stroke-width="1.5" fill="none" opacity="0.2" />
+                            <circle cx="50" cy="50" r="8" fill="var(--neon-blue)" />
+                            <!-- Blade 1 -->
+                            <path d="M 50,42 C 45,30 35,22 50,5 C 65,22 55,30 50,42 Z" fill="var(--neon-blue)" opacity="0.8" />
+                            <!-- Blade 2 -->
+                            <path d="M 58,50 C 70,45 78,35 95,50 C 78,65 70,55 58,50 Z" fill="var(--neon-blue)" opacity="0.8" />
+                            <!-- Blade 3 -->
+                            <path d="M 50,58 C 55,70 65,78 50,95 C 35,78 45,70 50,58 Z" fill="var(--neon-blue)" opacity="0.8" />
+                            <!-- Blade 4 -->
+                            <path d="M 42,50 C 30,55 22,65 5,50 C 22,35 30,45 42,50 Z" fill="var(--neon-blue)" opacity="0.8" />
+                        </svg>
+                        <div class="fan-glow"></div>
+                    </div>
+
+                    <div class="stats-list">
+                        <div class="stat-item">
+                            <span class="stat-label">Active Mode</span>
+                            <span id="stat-mode" class="stat-val text-glow-green">Automatic</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Enforced Speed</span>
+                            <span id="stat-speed" class="stat-val">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">CPU Temp</span>
+                            <span id="stat-cpu-temp" class="stat-val">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">GPU Temp</span>
+                            <span id="stat-gpu-temp" class="stat-val">--</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Safety Status</span>
+                            <span id="stat-safety" class="stat-val text-glow-green">Safe</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Launcher Widget -->
+                    <div class="quick-links-widget shortcuts-dropdown">
+                        <button class="shortcuts-trigger-btn" title="Quick Shortcuts">🚀</button>
+                        <div class="shortcuts-popover glass-card">
+                            <button class="quick-link-btn" id="link-explorer" title="Open App Directory">📁</button>
+                            <button class="quick-link-btn" id="link-cmd" title="Open PowerShell Console">💻</button>
+                            <button class="quick-link-btn" id="link-browser" title="Open Web Dashboard">🌐</button>
+                            <button class="quick-link-btn" id="link-taskmgr" title="Open Task Manager">📊</button>
+                            
+                            <!-- Custom links container -->
+                            <div id="custom-links-container" style="display: flex; gap: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Dock Quick Controls -->
+                    <div class="dock-controls-widget">
+                        <!-- Mode Selector -->
+                        <div class="dock-mode-selector">
+                            <button id="dock-btn-auto" class="dock-mini-btn" title="Set Auto (iDRAC) Mode">A</button>
+                            <button id="dock-btn-curve" class="dock-mini-btn" title="Set Smart Curve Mode">C</button>
+                            <button id="dock-btn-manual" class="dock-mini-btn" title="Set Manual Mode">M</button>
+                        </div>
+                        <!-- Mini manual speed control -->
+                        <div id="dock-manual-speed" class="dock-manual-speed disabled">
+                            <button id="dock-btn-speed-down" class="dock-mini-btn" title="Decrease Speed by 5%">-</button>
+                            <span id="dock-speed-display" class="dock-speed-text">20%</span>
+                            <button id="dock-btn-speed-up" class="dock-mini-btn" title="Increase Speed by 5%">+</button>
+                        </div>
+                        <!-- Dock Scale Selector -->
+                        <div class="dock-scale-container">
+                            <span class="dock-scale-icon" title="UI Scale">🔍</span>
+                            <select id="dock-scale-select" class="dock-scale-select">
+                                <option value="0.8">80%</option>
+                                <option value="1.0" selected>100%</option>
+                                <option value="1.2">120%</option>
+                                <option value="1.4">140%</option>
+                                <option value="1.6">160%</option>
+                                <option value="1.8">180%</option>
+                                <option value="2.0">200%</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Dock Window Controls -->
+                        <div class="dock-window-controls">
+                            <button id="dock-win-min" class="win-control-btn" title="Minimize App">_</button>
+                            <button id="dock-win-toggle" class="win-control-btn" title="Expand View">🖥️</button>
+                            <button id="dock-win-close" class="win-control-btn btn-close" title="Close App">×</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Secondary Grid: History Chart, Fan Curve Editor, & Security Settings -->
+        <div class="dashboard-secondary-grid">
+            
+            <!-- Historical Temp/Speed Graph -->
+            <section class="chart-panel glass-card">
+                <h2>Performance History</h2>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="history-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Curve Editor & Settings -->
+            <div class="settings-column">
+                
+                <!-- Fan Curve Editor -->
+                <section class="curve-editor-panel glass-card">
+                    <h2>Fan Curve Editor</h2>
+                    <div id="curve-points-list" class="curve-points-list">
+                        <!-- Points will be dynamically generated by app.js -->
+                    </div>
+                    <button id="btn-apply-curve" class="apply-btn">Save Fan Curve</button>
+                </section>
+
+                <!-- Safety & Security Settings -->
+                <section class="safety-security-panel glass-card">
+                    <h2>Protection & Access Control</h2>
+                    
+                    <!-- Fail-safe settings -->
+                    <div class="setting-group">
+                        <div class="slider-header">
+                            <h3>Critical Safety Temp</h3>
+                            <span id="safety-temp-display" class="safety-temp-val">85°C</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="safety-temp-slider" min="60" max="95" value="85" step="1">
+                            <div class="slider-track-fill" id="safety-slider-fill"></div>
+                        </div>
+                        <p class="setting-desc">Reverts to iDRAC Automatic mode if temperatures hit this limit.</p>
+                    </div>
+
+                    <!-- Password/PIN authentication -->
+                    <div class="setting-group border-top">
+                        <h3>Dashboard Security PIN</h3>
+                        <div class="pin-input-container">
+                            <input type="password" id="pin-field" placeholder="Enter PIN to unlock" class="password-input">
+                            <button id="btn-save-pin" class="pin-btn">Set Local PIN</button>
+                        </div>
+                        <p class="setting-desc">Stored locally in your browser. Encrypts and validates actions if PIN is enabled on the server.</p>
+                    </div>
+
+                    <!-- System Tray Settings -->
+                    <div class="setting-group border-top">
+                        <h3>System Tray Integration</h3>
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="chk-minimize-to-tray" checked>
+                            <span class="checkbox-checkmark"></span>
+                            Minimize to System Tray
+                        </label>
+                        <p class="setting-desc">When minimized, the app will hide to the system tray instead of the taskbar.</p>
+                    </div>
+                </section>
+
+                <!-- Interface & Themes -->
+                <section class="theme-panel glass-card">
+                    <h2>Interface Accent Themes</h2>
+                    <div class="setting-group">
+                        <span class="scale-label" style="display: block; margin-bottom: 12px;">Select Accent Theme Group:</span>
+                        
+                        <div class="theme-cards-grid">
+                            <div class="theme-card" data-theme="cyberpunk">
+                                <div class="theme-card-header">Cyberpunk Neon</div>
+                                <div class="theme-card-swatches">
+                                    <span class="theme-swatch" style="background-color: #39ff14;" title="Auto: Green"></span>
+                                    <span class="theme-swatch" style="background-color: #bd00ff;" title="Curve: Purple"></span>
+                                    <span class="theme-swatch" style="background-color: #00e5ff;" title="Manual: Blue"></span>
+                                </div>
+                            </div>
+                            <div class="theme-card" data-theme="volcanic">
+                                <div class="theme-card-header">Volcanic Heat</div>
+                                <div class="theme-card-swatches">
+                                    <span class="theme-swatch" style="background-color: #ffd700;" title="Auto: Gold"></span>
+                                    <span class="theme-swatch" style="background-color: #ff7f00;" title="Curve: Orange"></span>
+                                    <span class="theme-swatch" style="background-color: #ff003c;" title="Manual: Red"></span>
+                                </div>
+                            </div>
+                            <div class="theme-card" data-theme="forest">
+                                <div class="theme-card-header">Forest Mint</div>
+                                <div class="theme-card-swatches">
+                                    <span class="theme-swatch" style="background-color: #00e676;" title="Auto: Emerald"></span>
+                                    <span class="theme-swatch" style="background-color: #00b0ff;" title="Curve: Teal"></span>
+                                    <span class="theme-swatch" style="background-color: #1de9b6;" title="Manual: Mint"></span>
+                                </div>
+                            </div>
+                            <div class="theme-card" data-theme="sunset">
+                                <div class="theme-card-header">Retro Sunset</div>
+                                <div class="theme-card-swatches">
+                                    <span class="theme-swatch" style="background-color: #ff007f;" title="Auto: Pink"></span>
+                                    <span class="theme-swatch" style="background-color: #ff6b6b;" title="Curve: Coral"></span>
+                                    <span class="theme-swatch" style="background-color: #6c5ce7;" title="Manual: Indigo"></span>
+                                </div>
+                            </div>
+                            <div class="theme-card" data-theme="amethyst">
+                                <div class="theme-card-header">Royal Amethyst</div>
+                                <div class="theme-card-swatches">
+                                    <span class="theme-swatch" style="background-color: #e040fb;" title="Auto: Orchid"></span>
+                                    <span class="theme-swatch" style="background-color: #7b1fa2;" title="Curve: Violet"></span>
+                                    <span class="theme-swatch" style="background-color: #00e5ff;" title="Manual: Cyan"></span>
+                                </div>
+                            </div>
+                            <div class="theme-card" data-theme="custom">
+                                <div class="theme-card-header">Custom Theme</div>
+                                <div class="theme-card-swatches" id="custom-theme-swatch-preview">
+                                    <span class="theme-swatch custom-auto-preview" style="background-color: #39ff14;" title="Auto (Custom)"></span>
+                                    <span class="theme-swatch custom-curve-preview" style="background-color: #bd00ff;" title="Curve (Custom)"></span>
+                                    <span class="theme-swatch custom-manual-preview" style="background-color: #00e5ff;" title="Manual (Custom)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Theme Builder (collapsible) -->
+                        <div id="custom-theme-builder" class="custom-theme-builder collapsed">
+                            <div class="builder-inputs-grid">
+                                <div class="builder-input-group">
+                                    <label for="picker-color-auto">Auto Mode Fan Color</label>
+                                    <div class="picker-wrapper">
+                                        <input type="color" id="picker-color-auto" value="#39ff14">
+                                        <span class="picker-hex" id="hex-color-auto">#39FF14</span>
+                                    </div>
+                                </div>
+                                <div class="builder-input-group">
+                                    <label for="picker-color-curve">Smart Curve Fan Color</label>
+                                    <div class="picker-wrapper">
+                                        <input type="color" id="picker-color-curve" value="#bd00ff">
+                                        <span class="picker-hex" id="hex-color-curve">#BD00FF</span>
+                                    </div>
+                                </div>
+                                <div class="builder-input-group">
+                                    <label for="picker-color-manual">Manual Mode Fan Color</label>
+                                    <div class="picker-wrapper">
+                                        <input type="color" id="picker-color-manual" value="#00e5ff">
+                                        <span class="picker-hex" id="hex-color-manual">#00E5FF</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="setting-desc" style="margin-top: 12px;">Applies curated matching color groups or customized colors for Auto, Smart Curve, and Manual modes.</p>
+                    </div>
+                </section>
+
+                <!-- Shortcuts Manager -->
+                <section class="shortcuts-manager-panel glass-card">
+                    <h2>Shortcut Launcher Manager</h2>
+                    <div class="setting-group">
+                        <h3>Create New Shortcut</h3>
+                        <div class="pin-input-container">
+                            <input type="text" id="shortcut-name" placeholder="Shortcut Name (e.g. Discord)" class="password-input">
+                        </div>
+                        <div class="pin-input-container" style="margin-top: 8px;">
+                            <input type="text" id="shortcut-path" placeholder="Path to EXE, Folder, or URL Link" class="password-input">
+                            <button id="btn-browse-file" class="pin-btn" style="padding: 0 10px; font-size: 0.8rem; min-width: 90px;">Browse File</button>
+                            <button id="btn-browse-folder" class="pin-btn" style="padding: 0 10px; font-size: 0.8rem; min-width: 105px; margin-left: 4px;">Browse Folder</button>
+                        </div>
+                        <div style="margin-top: 12px;">
+                            <span class="scale-label" style="display: block; margin-bottom: 6px;">Shortcut Color:</span>
+                            <div class="color-palette-selector">
+                                <label class="color-radio">
+                                    <input type="radio" name="shortcut-color" value="blue" checked>
+                                    <span class="color-dot dot-blue" title="Neon Blue"></span>
+                                </label>
+                                <label class="color-radio">
+                                    <input type="radio" name="shortcut-color" value="green">
+                                    <span class="color-dot dot-green" title="Neon Green"></span>
+                                </label>
+                                <label class="color-radio">
+                                    <input type="radio" name="shortcut-color" value="purple">
+                                    <span class="color-dot dot-purple" title="Neon Purple"></span>
+                                </label>
+                                <label class="color-radio">
+                                    <input type="radio" name="shortcut-color" value="orange">
+                                    <span class="color-dot dot-orange" title="Neon Orange"></span>
+                                </label>
+                                <label class="color-radio">
+                                    <input type="radio" name="shortcut-color" value="red">
+                                    <span class="color-dot dot-red" title="Neon Red"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <button id="btn-add-shortcut" class="apply-btn" style="margin-top: 12px; padding: 10px;">Add Shortcut</button>
+                    </div>
+                    <div class="setting-group border-top">
+                        <h3>Custom Shortcuts List</h3>
+                        <div id="custom-shortcuts-list" class="curve-points-list" style="margin-top: 8px;">
+                            <!-- Dynamic list of custom shortcuts -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>Communicating locally with Dell PowerEdge Server via WMI & ipmitool</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

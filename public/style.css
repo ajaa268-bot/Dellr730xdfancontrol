@@ -1,0 +1,1637 @@
+:root {
+    --bg-dark: #07070d;
+    --card-bg: rgba(18, 18, 32, 0.93);
+    --border-color: rgba(255, 255, 255, 0.07);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.5);
+    
+    /* Neon Palettes */
+    --neon-blue: #00e5ff;
+    --neon-blue-glow: rgba(0, 229, 255, 0.4);
+    --neon-green: #39ff14;
+    --neon-green-glow: rgba(57, 255, 20, 0.35);
+    --neon-orange: #ff9100;
+    --neon-orange-glow: rgba(255, 145, 0, 0.35);
+    --neon-purple: #bd00ff;
+    
+    /* Dynamic theme colors */
+    --color-auto: #39ff14;
+    --color-auto-glow: rgba(57, 255, 20, 0.4);
+    --color-curve: #bd00ff;
+    --color-curve-glow: rgba(189, 0, 255, 0.4);
+    --color-manual: #00e5ff;
+    --color-manual-glow: rgba(0, 229, 255, 0.4);
+    
+    --transition-speed: 0.3s;
+}
+
+html {
+    zoom: var(--app-scale, 1);
+    height: 100%;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background: radial-gradient(circle at 80% 10%, rgba(0, 229, 255, 0.07), transparent 45%),
+                radial-gradient(circle at 10% 90%, rgba(189, 0, 255, 0.07), transparent 50%),
+                #07070d;
+    color: var(--text-primary);
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* App Container */
+.app-container {
+    width: 100%;
+    max-width: 1000px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 20px 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 10;
+    overflow-y: auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+    font-size: 1.8rem;
+    text-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+header h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff 30%, var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Connection Badges */
+.badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-connected {
+    background: rgba(57, 255, 20, 0.1);
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    text-shadow: 0 0 5px var(--neon-green-glow);
+}
+
+.badge-disconnected {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid #ff3333;
+    color: #ff3333;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+}
+
+/* Dashboard Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 25px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Glassmorphism Card Style */
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 30px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+    box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.05);
+}
+
+h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    border-left: 3px solid var(--neon-blue);
+    padding-left: 10px;
+}
+
+/* Mode Selection */
+.mode-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.mode-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--transition-speed) ease;
+}
+
+.mode-btn:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.mode-btn.active {
+    color: var(--text-primary);
+}
+
+/* Active States for Mode Buttons */
+#btn-mode-auto.active {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--color-auto);
+    box-shadow: 0 0 15px var(--color-auto-glow);
+    text-shadow: 0 0 5px var(--color-auto-glow);
+}
+
+#btn-mode-curve.active {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--color-curve);
+    box-shadow: 0 0 15px var(--color-curve-glow);
+    text-shadow: 0 0 5px var(--color-curve-glow);
+}
+
+#btn-mode-manual.active {
+    background: rgba(255, 255, 255, 0.02);
+    border-color: var(--color-manual);
+    box-shadow: 0 0 15px var(--color-manual-glow);
+    text-shadow: 0 0 5px var(--color-manual-glow);
+}
+
+.btn-icon {
+    font-size: 1.4rem;
+}
+
+/* Control Group for manual mode */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: opacity 0.3s ease;
+}
+
+.control-group.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h3 {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.speed-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+/* Slider Custom Styling */
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 6px;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 10px var(--neon-blue);
+    transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.slider-track-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 3px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Presets */
+.presets-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+h4 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.presets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.preset-btn {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+    background: rgba(0, 229, 255, 0.05);
+    border-color: rgba(0, 229, 255, 0.5);
+    color: var(--neon-blue);
+}
+
+.preset-btn.active {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--neon-blue);
+    color: var(--neon-blue);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+}
+
+/* Apply button */
+.apply-btn {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    color: #000000;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px var(--neon-blue-glow);
+    transition: all 0.2s ease;
+}
+
+.apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.6);
+}
+
+.apply-btn:active {
+    transform: translateY(0);
+}
+
+.apply-btn:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Right Panel: Fan Visualization */
+.status-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.fan-wrapper {
+    position: relative;
+    width: 170px;
+    height: 170px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fan-svg {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    filter: drop-shadow(0 0 12px var(--neon-blue-glow));
+    transition: filter var(--transition-speed) ease;
+}
+
+.fan-glow {
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    background: var(--neon-blue);
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.15;
+    z-index: 1;
+    transition: background var(--transition-speed) ease, opacity var(--transition-speed) ease;
+}
+
+/* Fan Rotating Animation classes */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin-slow {
+    animation: spin 3s linear infinite;
+}
+
+.spin-medium {
+    animation: spin 1.2s linear infinite;
+}
+
+.spin-fast {
+    animation: spin 0.4s linear infinite;
+}
+
+.spin-ludicrous {
+    animation: spin 0.12s linear infinite;
+}
+
+/* Stats list */
+.stats-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 14px 20px;
+    border-radius: 10px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.stat-val {
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.text-glow-green {
+    color: var(--neon-green);
+    text-shadow: 0 0 8px var(--neon-green-glow);
+}
+
+.text-glow-orange {
+    color: var(--neon-orange);
+    text-shadow: 0 0 8px var(--neon-orange-glow);
+}
+
+/* Secondary Grid Layout */
+.dashboard-secondary-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-secondary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.settings-column {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Fan Curve Editor CSS */
+.curve-points-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.curve-point-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: 10px;
+    gap: 10px;
+}
+
+.point-num {
+    font-weight: 700;
+    color: var(--neon-purple);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+}
+
+.point-arrow {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.curve-temp-input, .curve-speed-input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 30px 8px 10px;
+    color: var(--text-primary);
+    width: 85px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.curve-temp-input:focus, .curve-speed-input:focus {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 8px rgba(189, 0, 255, 0.2);
+}
+
+.input-unit {
+    position: absolute;
+    right: 10px;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+/* Safety & Protection Section CSS */
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 5px 0;
+}
+
+.setting-group.border-top {
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.setting-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.safety-temp-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--neon-orange);
+    text-shadow: 0 0 8px var(--neon-orange-glow);
+}
+
+#safety-temp-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+}
+
+#safety-temp-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 10px var(--neon-orange);
+    transition: transform 0.1s ease;
+}
+
+#safety-temp-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+#safety-slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-orange));
+    border-radius: 3px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* PIN Access CSS */
+.pin-input-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.password-input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 15px;
+    color: var(--text-primary);
+    flex-grow: 1;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.password-input:focus {
+    border-color: var(--neon-blue);
+}
+
+.pin-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0 20px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pin-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pin-btn.active {
+    background: rgba(255, 51, 0, 0.1);
+    border-color: #ff3300;
+    color: #ff3300;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    padding: 10px 0;
+}
+
+/* Dock Mode Styles */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.dock-toggle-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 6px 14px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.dock-toggle-btn:hover {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+/* Dock layout overrides */
+.app-container.dock-layout {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0 10px;
+    gap: 0;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    overflow: hidden !important;
+}
+
+.app-container.dock-layout header {
+    display: none !important;
+}
+
+.app-container.dock-layout .dashboard-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 48px;
+}
+
+/* Hide control settings card entirely in mini dock mode */
+.app-container.dock-layout .control-panel {
+    display: none !important;
+}
+
+.app-container.dock-layout .status-panel {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-container.dock-layout .dashboard-grid h2 {
+    display: none;
+}
+
+/* Mini Fan & Temp Layout inside dock */
+.app-container.dock-layout .status-display {
+    flex-direction: row;
+    gap: 15px;
+    width: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+.app-container.dock-layout .fan-wrapper {
+    width: 32px;
+    height: 32px;
+}
+
+.app-container.dock-layout .fan-glow {
+    display: none;
+}
+
+.app-container.dock-layout .stats-list {
+    flex-direction: row;
+    gap: 10px;
+    width: auto;
+}
+
+/* Hide non-essential stats: Active Mode (1), Enforced Speed (2), Safety (5) */
+.app-container.dock-layout .stat-item {
+    display: none !important;
+}
+
+/* Show only CPU Temp (3) and GPU Temp (4) */
+.app-container.dock-layout .stat-item:nth-child(3),
+.app-container.dock-layout .stat-item:nth-child(4) {
+    display: flex !important;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px 10px;
+    border-radius: 6px;
+    flex-direction: row;
+    gap: 6px;
+    align-items: center;
+}
+
+.app-container.dock-layout .stat-label {
+    font-size: 0.72rem;
+}
+
+.app-container.dock-layout .stat-val {
+    font-size: 0.82rem;
+}
+
+/* Hide secondary items in dock mode */
+.app-container.dock-layout .dashboard-secondary-grid,
+.app-container.dock-layout footer {
+    display: none !important;
+}
+
+/* Quick Launcher Widget Styles */
+.quick-links-widget {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 30px;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.quick-link-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quick-link-btn:hover {
+    transform: scale(1.15);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Individual button neon hovers */
+#link-explorer:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue-glow);
+    text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+#link-cmd:hover {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 10px var(--neon-green-glow);
+    text-shadow: 0 0 5px var(--neon-green-glow);
+}
+
+#link-browser:hover {
+    border-color: var(--neon-purple);
+    box-shadow: 0 0 10px rgba(189, 0, 255, 0.4);
+    text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
+}
+
+#link-taskmgr:hover {
+    border-color: var(--neon-orange);
+    box-shadow: 0 0 10px var(--neon-orange-glow);
+    text-shadow: 0 0 5px var(--neon-orange-glow);
+}
+
+/* Dock Layout overrides for launcher */
+.app-container.dock-layout .quick-links-widget {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-left: 10px;
+    gap: 0;
+}
+
+.app-container.dock-layout .quick-link-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+}
+
+/* UI Scale Selector in Standard Header */
+.scale-selector-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.scale-selector-container:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+.scale-label {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.scale-select {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    padding-right: 5px;
+}
+
+.scale-select option {
+    background: #0d0d1a;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Dock controls hidden in standard view */
+.dock-controls-widget {
+    display: none !important;
+}
+
+/* Dock controls visible in dock layout */
+.app-container.dock-layout .dock-controls-widget {
+    display: flex !important;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+}
+
+.dock-mode-selector {
+    display: flex;
+    gap: 4px;
+}
+
+.dock-mini-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dock-mini-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Mode active styles in dock controls */
+#dock-btn-auto.active {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-auto);
+    color: var(--color-auto);
+    box-shadow: 0 0 8px var(--color-auto-glow);
+}
+
+#dock-btn-curve.active {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-curve);
+    color: var(--color-curve);
+    box-shadow: 0 0 8px var(--color-curve-glow);
+}
+
+#dock-btn-manual.active {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--color-manual);
+    color: var(--color-manual);
+    box-shadow: 0 0 8px var(--color-manual-glow);
+}
+
+/* Dock speed controller */
+.dock-manual-speed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    padding: 0 10px;
+    transition: opacity 0.3s ease;
+}
+
+.dock-manual-speed.disabled {
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.dock-speed-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue-glow);
+    min-width: 32px;
+    text-align: center;
+}
+
+/* Dock scale selector */
+.dock-scale-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    padding: 3px 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.dock-scale-container:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+.dock-scale-icon {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    color: var(--neon-blue);
+}
+
+.dock-scale-select {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+}
+
+.dock-scale-select option {
+    background: #0d0d1a;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Drag Handles Styling */
+.drag-handle {
+    cursor: grab;
+    user-select: none;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Standard Header Drag Grip */
+.logo.drag-handle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.logo.drag-handle:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.header-drag-grip {
+    margin-left: 10px;
+    opacity: 0.25;
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: var(--neon-blue);
+    transition: opacity 0.2s ease;
+}
+
+.logo.drag-handle:hover .header-drag-grip {
+    opacity: 0.8;
+    text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+/* Dock Drag Handle */
+.dock-drag-handle {
+    display: none !important;
+}
+
+.app-container.dock-layout .dock-drag-handle {
+    display: flex !important;
+    flex-direction: row;
+    gap: 2px;
+    color: var(--text-secondary);
+    font-size: 1.15rem;
+    font-weight: 700;
+    padding: 0 6px;
+    align-items: center;
+    border-right: 1px solid var(--border-color);
+    margin-right: 8px;
+    height: 24px;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.app-container.dock-layout .dock-drag-handle:hover {
+    color: var(--neon-blue);
+    text-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+/* Window Control Buttons */
+.win-control-btn {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.win-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.win-control-btn.btn-close:hover {
+    background: rgba(255, 51, 51, 0.2);
+    border-color: #ff3333;
+    color: #ff3333;
+    box-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
+}
+
+/* Standard Header Window Controls */
+.header-window-controls {
+    display: flex;
+    gap: 8px;
+    margin-left: 10px;
+    border-left: 1px solid var(--border-color);
+    padding-left: 15px;
+}
+
+/* Dock Window Controls (Hidden in standard view) */
+.dock-window-controls {
+    display: none !important;
+}
+
+.app-container.dock-layout .dock-window-controls {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+    border-left: 1px solid var(--border-color);
+    padding-left: 10px;
+    margin-left: 4px;
+}
+
+/* Hover Shortcuts Dropdown Styling */
+.shortcuts-trigger-btn {
+    display: none;
+}
+
+.shortcuts-popover {
+    display: flex;
+    gap: 10px;
+}
+
+/* Dock Layout trigger button */
+.app-container.dock-layout .shortcuts-trigger-btn {
+    display: flex;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--neon-blue);
+    font-size: 0.85rem;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.app-container.dock-layout .shortcuts-trigger-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue-glow);
+}
+
+/* Dock Layout shortcuts dropdown container */
+.app-container.dock-layout .shortcuts-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Popover in Dock Layout */
+.app-container.dock-layout .shortcuts-popover {
+    display: flex;
+    position: absolute;
+    bottom: 45px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(18, 18, 32, 0.96);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 8px 12px;
+    gap: 8px;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-container.dock-layout .shortcuts-dropdown:hover .shortcuts-popover {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Snapped at TOP position overrides: popover floats below dock */
+.app-container.dock-layout.dock-top .shortcuts-popover {
+    bottom: auto;
+    top: 45px;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.app-container.dock-layout.dock-top .shortcuts-dropdown:hover .shortcuts-popover {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Custom Checkbox Integration */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    user-select: none;
+    margin-top: 5px;
+}
+
+.checkbox-container input {
+    display: none;
+}
+
+.checkbox-checkmark {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.checkbox-container:hover .checkbox-checkmark {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+.checkbox-container input:checked + .checkbox-checkmark {
+    background: rgba(0, 229, 255, 0.15);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 8px var(--neon-blue-glow);
+}
+
+.checkbox-container input:checked + .checkbox-checkmark::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid var(--neon-blue);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Invisible bridge to prevent hover loss between trigger and popover */
+.app-container.dock-layout .shortcuts-popover::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 25px;
+    background: transparent;
+}
+
+/* For bottom dock (default) */
+.app-container.dock-layout .shortcuts-popover::before {
+    top: 100%;
+}
+
+/* For top dock */
+.app-container.dock-layout.dock-top .shortcuts-popover::before {
+    top: auto;
+    bottom: 100%;
+}
+
+/* Custom Shortcut Launcher Styles */
+.custom-shortcut-btn {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--neon-blue);
+    border-color: rgba(0, 229, 255, 0.2);
+    text-transform: uppercase;
+}
+.custom-shortcut-btn:hover {
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue-glow);
+    text-shadow: 0 0 5px var(--neon-blue-glow);
+}
+
+.app-container.dock-layout .custom-shortcut-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+}
+
+.shortcut-item-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: 10px;
+    gap: 15px;
+}
+.shortcut-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+    overflow: hidden;
+}
+.shortcut-item-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--neon-blue);
+    text-align: left;
+}
+.shortcut-item-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+}
+.shortcut-delete-btn {
+    background: rgba(255, 51, 51, 0.1);
+    border: 1px solid rgba(255, 51, 51, 0.2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #ff3333;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.shortcut-delete-btn:hover {
+    background: rgba(255, 51, 51, 0.25);
+    border-color: #ff3333;
+    box-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
+}
+
+/* Color Palette Selector */
+.color-palette-selector {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 6px;
+}
+.color-radio {
+    cursor: pointer;
+}
+.color-radio input {
+    display: none;
+}
+.color-dot {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+.dot-blue { background: #00e5ff; box-shadow: 0 0 6px rgba(0, 229, 255, 0.4); }
+.dot-green { background: #39ff14; box-shadow: 0 0 6px rgba(57, 255, 20, 0.4); }
+.dot-purple { background: #bd00ff; box-shadow: 0 0 6px rgba(189, 0, 255, 0.4); }
+.dot-orange { background: #ff9100; box-shadow: 0 0 6px rgba(255, 145, 0, 0.4); }
+.dot-red { background: #ff3333; box-shadow: 0 0 6px rgba(255, 51, 51, 0.4); }
+
+.color-radio input:checked + .color-dot {
+    border-color: #ffffff;
+    transform: scale(1.15);
+}
+.color-radio input:checked + .dot-blue { box-shadow: 0 0 12px rgba(0, 229, 255, 0.8); }
+.color-radio input:checked + .dot-green { box-shadow: 0 0 12px rgba(57, 255, 20, 0.8); }
+.color-radio input:checked + .dot-purple { box-shadow: 0 0 12px rgba(189, 0, 255, 0.8); }
+.color-radio input:checked + .dot-orange { box-shadow: 0 0 12px rgba(255, 145, 0, 0.8); }
+.color-radio input:checked + .dot-red { box-shadow: 0 0 12px rgba(255, 51, 51, 0.8); }
+
+/* Custom Shortcut Color Overrides */
+.custom-shortcut-btn.color-blue {
+    color: #00e5ff;
+    border-color: rgba(0, 229, 255, 0.2);
+}
+.custom-shortcut-btn.color-blue:hover {
+    border-color: #00e5ff;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    text-shadow: 0 0 5px rgba(0, 229, 255, 0.4);
+}
+
+.custom-shortcut-btn.color-green {
+    color: #39ff14;
+    border-color: rgba(57, 255, 20, 0.2);
+}
+.custom-shortcut-btn.color-green:hover {
+    border-color: #39ff14;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+    text-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+}
+
+.custom-shortcut-btn.color-purple {
+    color: #bd00ff;
+    border-color: rgba(189, 0, 255, 0.2);
+}
+.custom-shortcut-btn.color-purple:hover {
+    border-color: #bd00ff;
+    box-shadow: 0 0 10px rgba(189, 0, 255, 0.4);
+    text-shadow: 0 0 5px rgba(189, 0, 255, 0.4);
+}
+
+.custom-shortcut-btn.color-orange {
+    color: #ff9100;
+    border-color: rgba(255, 145, 0, 0.2);
+}
+.custom-shortcut-btn.color-orange:hover {
+    border-color: #ff9100;
+    box-shadow: 0 0 10px rgba(255, 145, 0, 0.4);
+    text-shadow: 0 0 5px rgba(255, 145, 0, 0.4);
+}
+
+.custom-shortcut-btn.color-red {
+    color: #ff3333;
+    border-color: rgba(255, 51, 51, 0.2);
+}
+.custom-shortcut-btn.color-red:hover {
+    border-color: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+    text-shadow: 0 0 5px rgba(255, 51, 51, 0.4);
+}
+
+/* Custom Shortcut List Item Name Color Overrides */
+.shortcut-item-name.color-blue { color: #00e5ff; }
+.shortcut-item-name.color-green { color: #39ff14; }
+.shortcut-item-name.color-purple { color: #bd00ff; }
+.shortcut-item-name.color-orange { color: #ff9100; }
+.shortcut-item-name.color-red { color: #ff3333; }
+
+/* Visual Theme Panel Styles */
+.theme-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 480px) {
+    .theme-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.theme-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.theme-card.active {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 12px var(--neon-blue-glow);
+}
+
+.theme-card-header {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+}
+
+.theme-card-swatches {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.theme-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom Theme Builder (collapsible) */
+.custom-theme-builder {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin-top 0.3s ease, padding-top 0.3s ease;
+}
+
+.custom-theme-builder.active {
+    max-height: 250px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.builder-inputs-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.builder-input-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.builder-input-group label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Custom Color Pickers */
+.picker-wrapper input[type="color"] {
+    -webkit-appearance: none;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: none;
+    padding: 0;
+}
+
+.picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.picker-wrapper input[type="color"]::-webkit-color-swatch {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+}
+
+.picker-hex {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--neon-blue);
+    width: 60px;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+
+
+
