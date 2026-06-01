@@ -242,6 +242,7 @@ public class DockForm : Form {
         string message = e.TryGetWebMessageAsString();
         if (message.StartsWith("dock")) {
             isTransitioning = true;
+            this.WindowState = FormWindowState.Normal;
             isDockLayout = true;
             int height = dockHeight;
             double scale = 1.0;
