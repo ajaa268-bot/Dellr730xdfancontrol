@@ -160,6 +160,7 @@ try {
 $lastRun = [DateTime]::MinValue
 $lastTempCheck = [DateTime]::MinValue
 $lastHistoryLog = [DateTime]::MinValue
+$global:lastWmiTime = [DateTime]::MinValue
 
 # Initialize the first asynchronous request wait handle
 $contextAsync = $listener.BeginGetContext($null, $null)
@@ -170,41 +171,52 @@ while ($listener.IsListening) {
 
     # 1a. Async Apply settings immediately on change (so HTTP requests don't block)
     if ($global:applyPending -and -not $global:safetyOverride) {
-        $global:applyPending = $false
-        try {
-            if ($global:mode -eq "manual") {
-                $speedHex = "0x" + $global:speed.ToString("X2")
-                Log-Message "[Async Apply] Enforcing manual mode, speed: $global:speed% ($speedHex)..." "INFO"
-                $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
-                $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
-                Log-Message "ipmitool manual raw outputs: $out1 | $out2" "INFO"
-                $lastRun = $now
-            } elseif ($global:mode -eq "curve") {
-                # Force instant recheck of temperature & curve mapping
-                $lastTempCheck = [DateTime]::MinValue
-            } else {
-                Log-Message "[Async Apply] Enforcing auto mode..." "INFO"
-                $out = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 2>&1
-                Log-Message "ipmitool auto raw output: $out" "INFO"
-                $lastRun = $now
+        $secondsSinceLastWmi = ($now - $global:lastWmiTime).TotalSeconds
+        if ($secondsSinceLastWmi -lt 2.5) {
+            # Cooldown active, wait until next iteration (do not clear applyPending, let it merge/throttle)
+        } else {
+            $global:applyPending = $false
+            try {
+                if ($global:mode -eq "manual") {
+                    $speedHex = "0x" + $global:speed.ToString("X2")
+                    Log-Message "[Async Apply] Enforcing manual mode, speed: $global:speed% ($speedHex)..." "INFO"
+                    $global:lastWmiTime = $now
+                    $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
+                    $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
+                    Log-Message "ipmitool manual raw outputs: $out1 | $out2" "INFO"
+                    $lastRun = $now
+                } elseif ($global:mode -eq "curve") {
+                    # Force instant recheck of temperature & curve mapping
+                    $lastTempCheck = [DateTime]::MinValue
+                } else {
+                    Log-Message "[Async Apply] Enforcing auto mode..." "INFO"
+                    $global:lastWmiTime = $now
+                    $out = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 2>&1
+                    Log-Message "ipmitool auto raw output: $out" "INFO"
+                    $lastRun = $now
+                }
+            } catch {
+                Log-Message "Async settings application failed: $_" "ERROR"
             }
-        } catch {
-            Log-Message "Async settings application failed: $_" "ERROR"
         }
     }
 
     # 1. Daemon Loop: Apply fan speed periodically (every 5 seconds) to prevent iDRAC override
     # Applies to BOTH manual and curve modes
     if (($global:mode -eq "manual" -or $global:mode -eq "curve") -and -not $global:safetyOverride -and ($now - $lastRun).TotalSeconds -ge 3) {
-        $speedHex = "0x" + $global:speed.ToString("X2")
-        try {
-            Log-Message "[Daemon] Enforcing mode: $global:mode, speed: $global:speed% ($speedHex)..." "INFO"
-            $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
-            $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
-            Log-Message "Daemon ipmitool outputs: $out1 | $out2" "INFO"
-            $lastRun = $now
-        } catch {
-            Log-Message "Failed to set fan speed in daemon: $_" "ERROR"
+        $secondsSinceLastWmi = ($now - $global:lastWmiTime).TotalSeconds
+        if ($secondsSinceLastWmi -ge 2.5) {
+            $speedHex = "0x" + $global:speed.ToString("X2")
+            try {
+                Log-Message "[Daemon] Enforcing mode: $global:mode, speed: $global:speed% ($speedHex)..." "INFO"
+                $global:lastWmiTime = $now
+                $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
+                $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
+                Log-Message "Daemon ipmitool outputs: $out1 | $out2" "INFO"
+                $lastRun = $now
+            } catch {
+                Log-Message "Failed to set fan speed in daemon: $_" "ERROR"
+            }
         }
     }
 
