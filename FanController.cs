@@ -160,9 +160,9 @@ public class DockForm : Form {
     public DockForm() {
         // Form Setup
         this.Text = "Dell Server Fan Controller";
-        this.FormBorderStyle = FormBorderStyle.None;
+        this.FormBorderStyle = FormBorderStyle.Sizable;
         this.ShowInTaskbar = true;
-        this.TopMost = true;
+        this.TopMost = false;
         this.BackColor = Color.FromArgb(18, 18, 32);
 
         try {
@@ -250,6 +250,8 @@ public class DockForm : Form {
             }
             currentHeight = height;
             currentWidth = screenWidth;
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.TopMost = true;
             this.ShowInTaskbar = false; 
             RegisterAppBar();
             if (isAppBarRegistered) {
@@ -270,6 +272,8 @@ public class DockForm : Form {
             currentHeight = Math.Min(height, maxH);
             currentWidth = Math.Min((int)Math.Round(1000 * scale), screenWidth);
             
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.TopMost = false;
             this.ShowInTaskbar = true; 
             UnregisterAppBar();
         } else if (message.StartsWith("launch:")) {
@@ -550,6 +554,11 @@ public class DockForm : Form {
                 if (trayIcon != null) {
                     trayIcon.ShowBalloonTip(2000, "Fan Controller Backgrounded", "Double-click the tray icon to restore.", ToolTipIcon.Info);
                 }
+            }
+        } else if (this.WindowState == FormWindowState.Normal) {
+            if (!isDockLayout) {
+                currentWidth = this.Width;
+                currentHeight = this.Height;
             }
         }
     }
