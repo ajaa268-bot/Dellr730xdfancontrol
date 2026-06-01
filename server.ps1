@@ -10,6 +10,30 @@ if (-not (Test-Path $ipmitool) -and -not (Get-Command $ipmitool -ErrorAction Sil
     $ipmitool = Join-Path $PSScriptRoot "ipmitool.exe"
 }
 
+# Logging Setup
+$global:logFile = Join-Path $PSScriptRoot "server.log"
+
+function Log-Message {
+    param(
+        [string]$message,
+        [string]$level = "INFO"
+    )
+    $timestamp = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+    $logLine = "[$timestamp] [$level] $message"
+    
+    if ($level -eq "ERROR") {
+        Write-Host "[ERROR] $logLine" -ForegroundColor Red
+    } elseif ($level -eq "WARNING") {
+        Write-Host "[WARN] $logLine" -ForegroundColor Yellow
+    } else {
+        Write-Host $logLine
+    }
+    
+    try {
+        $logLine | Out-File $global:logFile -Append -Encoding UTF8
+    } catch {}
+}
+
 # Global State
 $global:mode = "auto"   # "auto", "manual", "curve"
 $global:speed = 20      # percentage (10 to 100)
@@ -44,8 +68,9 @@ function Save-Config {
     }
     try {
         $config | ConvertTo-Json -Depth 10 | Out-File $global:configFile -Encoding UTF8
+        Log-Message "Config saved successfully: Mode=$global:mode, Speed=$global:speed%, Safety=$global:safetyThreshold" "INFO"
     } catch {
-        Write-Warning "Failed to save config: $_"
+        Log-Message "Failed to save config: $_" "WARNING"
     }
 }
 
@@ -64,9 +89,9 @@ function Load-Config {
                 }
                 $global:curvePoints = $points
             }
-            Write-Host "Config loaded successfully from $global:configFile" -ForegroundColor Green
+            Log-Message "Config loaded successfully from $global:configFile (Mode=$global:mode, Speed=$global:speed%)" "INFO"
         } catch {
-            Write-Warning "Failed to load config: $_"
+            Log-Message "Failed to load config: $_" "WARNING"
         }
     }
 }
@@ -149,20 +174,22 @@ while ($listener.IsListening) {
         try {
             if ($global:mode -eq "manual") {
                 $speedHex = "0x" + $global:speed.ToString("X2")
-                Write-Host "[Async Apply] Enforcing manual mode, speed: $global:speed% ($speedHex)..." -ForegroundColor Green
-                & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 | Out-Null
-                & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex | Out-Null
+                Log-Message "[Async Apply] Enforcing manual mode, speed: $global:speed% ($speedHex)..." "INFO"
+                $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
+                $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
+                Log-Message "ipmitool manual raw outputs: $out1 | $out2" "INFO"
                 $lastRun = $now
             } elseif ($global:mode -eq "curve") {
                 # Force instant recheck of temperature & curve mapping
                 $lastTempCheck = [DateTime]::MinValue
             } else {
-                Write-Host "[Async Apply] Enforcing auto mode..." -ForegroundColor Green
-                & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 | Out-Null
+                Log-Message "[Async Apply] Enforcing auto mode..." "INFO"
+                $out = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x01 2>&1
+                Log-Message "ipmitool auto raw output: $out" "INFO"
                 $lastRun = $now
             }
         } catch {
-            Write-Warning "Async settings application failed: $_"
+            Log-Message "Async settings application failed: $_" "ERROR"
         }
     }
 
@@ -171,12 +198,13 @@ while ($listener.IsListening) {
     if (($global:mode -eq "manual" -or $global:mode -eq "curve") -and -not $global:safetyOverride -and ($now - $lastRun).TotalSeconds -ge 3) {
         $speedHex = "0x" + $global:speed.ToString("X2")
         try {
-            Write-Host "[Daemon] Enforcing mode: $global:mode, speed: $global:speed% ($speedHex)..." -ForegroundColor Yellow
-            & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 | Out-Null
-            & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex | Out-Null
+            Log-Message "[Daemon] Enforcing mode: $global:mode, speed: $global:speed% ($speedHex)..." "INFO"
+            $out1 = & $ipmitool -I wmi raw 0x30 0x30 0x01 0x00 2>&1
+            $out2 = & $ipmitool -I wmi raw 0x30 0x30 0x02 0xff $speedHex 2>&1
+            Log-Message "Daemon ipmitool outputs: $out1 | $out2" "INFO"
             $lastRun = $now
         } catch {
-            Write-Warning "Failed to set fan speed: $_"
+            Log-Message "Failed to set fan speed in daemon: $_" "ERROR"
         }
     }
 
