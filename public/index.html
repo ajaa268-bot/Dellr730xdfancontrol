@@ -13,6 +13,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Beautiful loading cover screen -->
+    <div id="app-loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-fan-wrapper">
+                <svg class="loading-fan-svg" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="var(--neon-blue)" stroke-width="1.5" fill="none" opacity="0.2" />
+                    <circle cx="50" cy="50" r="8" fill="var(--neon-blue)" />
+                    <!-- Blade 1 -->
+                    <path d="M 50,42 C 45,30 35,22 50,5 C 65,22 55,30 50,42 Z" fill="var(--neon-blue)" opacity="0.8" />
+                    <!-- Blade 2 -->
+                    <path d="M 58,50 C 70,45 78,35 95,50 C 78,65 70,55 58,50 Z" fill="var(--neon-blue)" opacity="0.8" />
+                    <!-- Blade 3 -->
+                    <path d="M 50,58 C 55,70 65,78 50,95 C 35,78 45,70 50,58 Z" fill="var(--neon-blue)" opacity="0.8" />
+                    <!-- Blade 4 -->
+                    <path d="M 42,50 C 30,55 22,65 5,50 C 22,35 30,45 42,50 Z" fill="var(--neon-blue)" opacity="0.8" />
+                </svg>
+            </div>
+            <h2>POWEREDGE FAN CTRL</h2>
+            <p>Initializing connection to server...</p>
+        </div>
+    </div>
+
     <div class="app-container">
         <header>
             <div class="logo drag-handle" title="Drag to move app">

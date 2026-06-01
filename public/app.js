@@ -70,6 +70,15 @@ function updateUI() {
     if (appState.isConnected) {
         badge.textContent = 'Connected';
         badge.className = 'badge badge-connected';
+        
+        // Hide cover loading screen
+        const loader = document.getElementById('app-loading-screen');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
+        }
     } else {
         badge.textContent = 'Offline';
         badge.className = 'badge badge-disconnected';

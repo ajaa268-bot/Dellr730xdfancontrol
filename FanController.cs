@@ -72,6 +72,7 @@ public class DockForm : Form {
     private NotifyIcon trayIcon;
     private ContextMenuStrip trayMenu;
     private bool minimizeToTray = true;
+    private bool isTransitioning = false;
 
     // Win32 API structures
     [StructLayout(LayoutKind.Sequential)]
@@ -240,6 +241,7 @@ public class DockForm : Form {
     private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e) {
         string message = e.TryGetWebMessageAsString();
         if (message.StartsWith("dock")) {
+            isTransitioning = true;
             isDockLayout = true;
             int height = dockHeight;
             double scale = 1.0;
@@ -261,7 +263,9 @@ public class DockForm : Form {
                 this.Size = new Size(currentWidth, currentHeight);
                 this.Location = new Point(0, targetYVisible);
             }
+            isTransitioning = false;
         } else if (message.StartsWith("standard")) {
+            isTransitioning = true;
             bool wasDock = (this.FormBorderStyle == FormBorderStyle.None);
             isDockLayout = false;
             int height = standardHeight;
@@ -289,6 +293,7 @@ public class DockForm : Form {
                 int targetY = (screenHeight - taskbarHeight - currentHeight) / 2;
                 this.Location = new Point(targetX, targetY);
             }
+            isTransitioning = false;
         } else if (message.StartsWith("launch:")) {
             string app = message.Substring(7);
             try {
@@ -561,7 +566,7 @@ public class DockForm : Form {
                 }
             }
         } else if (this.WindowState == FormWindowState.Normal) {
-            if (!isDockLayout) {
+            if (!isDockLayout && !isTransitioning) {
                 currentWidth = this.Width;
                 currentHeight = this.Height;
             }
