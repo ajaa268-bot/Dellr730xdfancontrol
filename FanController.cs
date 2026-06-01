@@ -164,7 +164,7 @@ public class DockForm : Form {
         this.FormBorderStyle = FormBorderStyle.Sizable;
         this.ShowInTaskbar = true;
         this.TopMost = false;
-        this.BackColor = Color.FromArgb(18, 18, 32);
+        this.BackColor = Color.FromArgb(29, 9, 48);
 
         try {
             this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);

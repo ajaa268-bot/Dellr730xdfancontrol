@@ -1068,3 +1068,13 @@ updateSliderUI(appState.speed);
 fetchStatus();
 setInterval(fetchStatus, 1000);
 
+// Hide splash screen after 1.5 seconds
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('app-splash-screen');
+        if (splash) {
+            splash.classList.add('fade-out');
+        }
+    }, 1500);
+});
+
