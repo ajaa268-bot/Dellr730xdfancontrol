@@ -19,6 +19,8 @@ $global:deg = [char]176
 $global:safetyThreshold = 85
 $global:safetyOverride = $false
 $global:pin = ""        # Simple security PIN (leave empty to disable)
+$global:lastKnownCpuVal = 35  # reasonable default
+$global:lastKnownGpuVal = 35  # reasonable default
 $global:history = [System.Collections.Generic.List[PSCustomObject]]::new()
 $global:curvePoints = @(
     [PSCustomObject]@{ temp = 40; speed = 15 }
@@ -157,9 +159,15 @@ while ($listener.IsListening) {
         $cpuMatches = [regex]::Matches($global:cpuTemp, "(\d+)")
         if ($cpuMatches.Count -gt 0) {
             $cpuVal = ($cpuMatches | ForEach-Object { [double]$_.Groups[1].Value } | Measure-Object -Maximum).Maximum
+            $global:lastKnownCpuVal = $cpuVal
+        } else {
+            $cpuVal = $global:lastKnownCpuVal
         }
         if ($global:gpuTemp -match "(\d+)") {
             $gpuVal = [double]$Matches[1]
+            $global:lastKnownGpuVal = $gpuVal
+        } else {
+            $gpuVal = $global:lastKnownGpuVal
         }
 
         $highestTemp = 0
