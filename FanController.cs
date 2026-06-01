@@ -12,8 +12,18 @@ public class FanControllerApp {
     [DllImport("user32.dll")]
     private static extern bool SetProcessDPIAware();
 
+    private static Mutex mutex = null;
+
     [STAThread]
     public static void Main() {
+        bool createdNew;
+        mutex = new Mutex(true, "Global\\DellPowerEdgeFanControllerMutex-UniqueId", out createdNew);
+
+        if (!createdNew) {
+            MessageBox.Show("Another instance of Dell Server Fan Controller is already running.", "Application Running", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         try {
             SetProcessDPIAware();
         } catch {}
@@ -21,6 +31,8 @@ public class FanControllerApp {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         Application.Run(new DockForm());
+        
+        GC.KeepAlive(mutex);
     }
 
     private static void EnsureServerRunning() {
