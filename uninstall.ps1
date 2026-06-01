@@ -16,8 +16,8 @@ Write-Host "==================================================" -ForegroundColor
 Write-Host " Uninstalling PowerEdge Fan Controller" -ForegroundColor Red
 Write-Host "==================================================" -ForegroundColor Orange
 
-# 2. Stop and Unregister background service task
-Write-Host "Removing background system task..." -ForegroundColor Gray
+# 2. Stop and Unregister background tasks
+Write-Host "Removing background system tasks..." -ForegroundColor Gray
 try {
     if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
         Unregister-ScheduledTask -TaskName $taskName -Confirm:$false | Out-Null
@@ -25,8 +25,15 @@ try {
     } else {
         Write-Host "Background task '$taskName' was not registered." -ForegroundColor Gray
     }
+    
+    if (Get-ScheduledTask -TaskName "DellFanControlFallback" -ErrorAction SilentlyContinue) {
+        Unregister-ScheduledTask -TaskName "DellFanControlFallback" -Confirm:$false | Out-Null
+        Write-Host "Background fallback task 'DellFanControlFallback' removed." -ForegroundColor Green
+    } else {
+        Write-Host "Background fallback task 'DellFanControlFallback' was not registered." -ForegroundColor Gray
+    }
 } catch {
-    Write-Warning "Could not unregister scheduled task: $_"
+    Write-Warning "Could not unregister scheduled tasks: $_"
 }
 
 # 3. Kill active processes

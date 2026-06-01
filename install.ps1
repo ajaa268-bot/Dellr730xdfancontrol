@@ -33,7 +33,8 @@ $filesToCopy = @(
     "Microsoft.Web.WebView2.WinForms.dll",
     "Microsoft.Web.WebView2.Wpf.dll",
     "server.ps1",
-    "register-service.ps1"
+    "register-service.ps1",
+    "dell_fan_control.ps1"
 )
 
 foreach ($file in $filesToCopy) {
@@ -61,6 +62,25 @@ $registerScript = Join-Path $InstallDir "register-service.ps1"
 if (Test-Path $registerScript) {
     # Run the register-service script and force starting now
     & $registerScript
+}
+
+# 6. Register fallback daemon startup task (runs dell_fan_control.ps1 as SYSTEM)
+Write-Host "Registering fallback daemon task..." -ForegroundColor Gray
+$fallbackScriptPath = Join-Path $InstallDir "dell_fan_control.ps1"
+if (Test-Path $fallbackScriptPath) {
+    $fallbackAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -File `"$fallbackScriptPath`""
+    $fallbackTrigger = New-ScheduledTaskTrigger -AtStartup
+    $fallbackPrincipal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -RunLevel Highest
+    try {
+        if (Get-ScheduledTask -TaskName "DellFanControlFallback" -ErrorAction SilentlyContinue) {
+            Unregister-ScheduledTask -TaskName "DellFanControlFallback" -Confirm:$false | Out-Null
+        }
+        Register-ScheduledTask -TaskName "DellFanControlFallback" -Action $fallbackAction -Trigger $fallbackTrigger -Principal $fallbackPrincipal -Force | Out-Null
+        Start-ScheduledTask -TaskName "DellFanControlFallback" | Out-Null
+        Write-Host "Registered and started DellFanControlFallback task successfully." -ForegroundColor Green
+    } catch {
+        Write-Warning "Failed to register DellFanControlFallback task: $_"
+    }
 }
 
 # 6. Create Desktop & Start Menu Shortcuts

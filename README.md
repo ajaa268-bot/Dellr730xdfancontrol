@@ -20,7 +20,11 @@ This utility consists of a compiled **C# Windows Forms GUI** wrapping a premium 
 * **Custom Theme Engine**: Toggle between presets (Cyberpunk Neon, Volcanic Heat, Forest Mint, Sunset, Amethyst) or build your own custom accent colors.
 * **Quick App Launcher**: Configure and trigger custom app launch shortcuts (executables, folders, or web links) directly from the dock.
 * **Tray Integration**: Minimize the controller safely to the Windows System Tray to keep your desktop clean.
-* **Security Access PIN**: Secure control APIs with a customizable PIN to prevent unauthorized network access.
+* **Security Access PIN**: Secure control APIs with a customizable PIN to prevent unauthorized network access. Pin settings are persisted globally on the server.
+* **Single Instance Protection**: Integrated Mutex check to ensure only one instance of the app runs at a time.
+* **Optimized & Throttled WMI Calls**: Uses a 2.5-second rate-limiting cooldown and command merging on the backend to prevent WMI provider overload, command hangs, and WMI busy failures.
+* **Persistent Diagnostic Logs**: Writes detailed startup, API updates, WMI raw outputs, and error stacktraces to a local `server.log` file.
+* **Animated Purple Splash Screen**: Initial launch sequence displays a rich purple gradient splash screen before transitioning to WebView2 loading and connection.
 
 ---
 
@@ -36,9 +40,9 @@ graph TD
     F -->|If GUI Closed| D
 ```
 
-* **`FanController.exe`**: C# GUI container that manages WebView2, window scaling, custom shortcut execution, and system tray integration.
-* **`server.ps1`**: Non-blocking web server running locally on port 3000. It reads temperature metrics via `ipmitool` (over WMI) and `nvidia-smi`, handles API routing, history logs, and drives the fan control loop.
-* **`dell_fan_control.ps1`**: A fail-safe daemon running as `SYSTEM` on boot. It stays idle while the GUI app is open, but automatically engages to lock fans at a safe fallback speed (e.g., 35%) if the GUI app is closed, preventing dangerous overheating.
+* **`FanController.exe`**: C# GUI container that manages WebView2, window scaling, single-instance Mutex check, custom shortcut execution, and system tray integration.
+* **`server.ps1`**: Non-blocking web server running locally on port 3000. It reads temperature metrics via `ipmitool` (over WMI) and `nvidia-smi`, handles API routing, history logs, and drives the throttled fan control loop.
+* **`dell_fan_control.ps1`**: A fail-safe daemon running as `SYSTEM` on boot. It stays idle while the GUI app is open, but automatically engages to lock fans at a safe **50% fallback speed** if the GUI app is closed, applying the command once to prevent fan revving.
 
 ---
 
