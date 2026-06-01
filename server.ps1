@@ -124,15 +124,17 @@ while ($listener.IsListening) {
                     $cpuTemps += "$($Matches[1])$global:deg`C"
                 }
             }
-            # Retry once if no temperatures were read (often due to temporary Node busy errors)
-            if ($cpuTemps.Count -eq 0) {
-                Start-Sleep -Milliseconds 500
+            # Retry up to 3 times if no temperatures were read (often due to temporary Node busy errors)
+            $retryCount = 0
+            while ($cpuTemps.Count -eq 0 -and $retryCount -lt 3) {
+                Start-Sleep -Milliseconds 1000
                 $ipmiOutput = & $ipmitool -I wmi sdr type Temperature 2>$null
                 foreach ($line in ($ipmiOutput -split "`r?`n")) {
                     if ($line -match "Temp\s+\|\s+\w+h\s+\|\s+ok\s+\|\s+[\d\.]+\s+\|\s+(\d+)\s+degrees C" -and $line -notmatch "Inlet" -and $line -notmatch "Exhaust") {
                         $cpuTemps += "$($Matches[1])$global:deg`C"
                     }
                 }
+                $retryCount++
             }
             if ($cpuTemps.Count -gt 0) {
                 $global:cpuTemp = $cpuTemps -join " / "
